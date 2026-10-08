@@ -1,0 +1,47 @@
+name: testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  testes:
+    runs-on: ${{ matrix.so }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        so: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # O juiz e a DEFINICAO: a melhor classificacao e a que contraria menos jogos,
+      # e saber que ela e a melhor exige olhar todas as n! ordens. Achar essa ordem
+      # e o problema de Slater, de 1961, e ele e dos dificeis.
+      #
+      # E os teoremas sao conferidos em TODOS os torneios de cada tamanho, e nao
+      # numa amostra: com seis jogadores sao 32.768 torneios, e Redei e Moon valem
+      # nos 32.768. A suite leva uns setenta segundos por causa disso.
+      - name: testes
+        run: dotnet test testes/Torneio.Testes/Torneio.Testes.csproj -c Release --nologo -v q
+
+      - name: os teoremas em todos os torneios de cada tamanho
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- teoremas
+
+      - name: os metodos contra a melhor ordem
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- metodos
+
+      - name: quantas vezes cada metodo acerta
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- acerto
+
+      - name: a frequencia do vencedor de Condorcet
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- condorcet
+
+      - name: o custo da forca bruta contra o dos metodos
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- custo
